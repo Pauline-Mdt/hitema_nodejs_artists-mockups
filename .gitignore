@@ -1,0 +1,10 @@
+# Variables
+.env
+
+# Config
+/node_modules
+/data
+
+# IDE
+/.idea
+/.vscode
