@@ -3,10 +3,10 @@ version: "3.8"
 services:
   mongo:
     image: mongo:4.2
-    container_name: mongo_db
+    container_name: mongo
     restart: always
     ports:
-      - 27018:27018
+      - 27017:27017
     volumes:
       - ./data:/data/db
       - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
