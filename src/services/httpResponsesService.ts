@@ -40,7 +40,7 @@ export const httpNoContent = (res: Response) => {
 /**
  *
  * @param res
- * @param message Message to in the response about the error
+ * @param message Message to send in the response about the error
  */
 export const httpBadRequest = (res: Response, message: string) => {
     res.status(400)
@@ -53,7 +53,7 @@ export const httpBadRequest = (res: Response, message: string) => {
 /**
  *
  * @param res
- * @param message Message to in the response about the error
+ * @param message Message to send in the response about the error
  */
 export const httpUnauthorized = (res: Response, message: string) => {
     res.status(401)
@@ -82,7 +82,7 @@ export const httpNotFound = (res: Response) => {
 /**
  *
  * @param res
- * @param message Message to in the response about the error
+ * @param message Message to send in the response about the error
  */
 export const httpUnprocessableEntity = (res: Response, message: string) => {
     res.status(422)
