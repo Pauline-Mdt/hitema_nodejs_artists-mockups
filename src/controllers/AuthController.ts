@@ -6,11 +6,12 @@ import {
     httpUnauthorized,
 } from '../services/httpResponsesService';
 import UserController from './UserController';
+import {gererateToken} from '../services/jwtService';
 
 class AuthController {
     static login(req: Request, res: Response) {
         const userToLogin: IUserLogin = {
-            username: req.body.username,
+            email: req.body.email,
             password: req.body.password,
         }
 
@@ -20,7 +21,7 @@ class AuthController {
             return;
         }
 
-        const user = UserController.users.filter((user) => user.username === userToLogin.username)[0];
+        const user = UserController.users.filter((user) => user.email === userToLogin.email)[0];
         if (!user) {
             httpNotFound(res);
             return;
@@ -31,11 +32,16 @@ class AuthController {
             return;
         }
 
+        const token = gererateToken(user);
+        req.session.token = token;
         req.session.user = {
             id: user.id,
             role: user.role,
         };
-        httpOk(res, user);
+        httpOk(res, {
+            token,
+            user,
+        });
     }
 
     static current(req: Request, res: Response) {
@@ -59,7 +65,11 @@ class AuthController {
             return;
         }
 
+        req.session.token = undefined;
         req.session.user = undefined;
+        req.session.destroy(() => {
+            console.log('Session destroyed');
+        });
         httpOk(res, 'You\'re now logout!');
     }
 }

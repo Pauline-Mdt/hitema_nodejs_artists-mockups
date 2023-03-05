@@ -1,7 +1,12 @@
 import {CreateUserSchema, IUser, UpdateAdminSchema, UpdateUserSchema} from '../models/IUser';
 import {Request, Response} from 'express';
 import * as crypto from 'crypto';
-import {httpCreated, httpNotFound, httpOk, httpUnprocessableEntity} from '../services/httpResponsesService';
+import {
+    httpCreated,
+    httpNotFound,
+    httpOk,
+    httpUnprocessableEntity,
+} from '../services/httpResponsesService';
 
 class UserController {
     static users: IUser[] = [
@@ -29,6 +34,11 @@ class UserController {
             return;
         }
 
+        if (this.users.filter((user) => user.email === newManager.email).length > 0) {
+            httpUnprocessableEntity(res, 'Email already taken.')
+            return;
+        }
+
         this.users.push(newManager);
 
         httpCreated(res, newManager);
@@ -40,7 +50,7 @@ class UserController {
             role: 'artist',
             email: req.body.email,
             password: req.body.password,
-            username: req.body.username,
+            pseudo: req.body.pseudo,
             banned: false,
             inscriptionDate: new Date(),
         };
@@ -48,6 +58,16 @@ class UserController {
 
         if (error) {
             httpUnprocessableEntity(res, error.message);
+            return;
+        }
+
+        if (this.users.filter((user) => user.email === newArtist.email).length > 0) {
+            httpUnprocessableEntity(res, 'Email already taken.')
+            return;
+        }
+
+        if (this.users.filter((user) => user.pseudo === newArtist.pseudo).length > 0) {
+            httpUnprocessableEntity(res, 'Pseudo already taken.')
             return;
         }
 
