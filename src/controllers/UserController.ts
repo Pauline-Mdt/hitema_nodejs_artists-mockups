@@ -72,7 +72,7 @@ class UserController {
         httpOk(res, user);
     }
 
-    static updateAdmin = (req: Request, res: Response) => {
+    static updateUser = (req: Request, res: Response) => {
         const userId: string = req.params.id;
         const user = this.users.find((user) => user.id === userId);
 
@@ -81,7 +81,7 @@ class UserController {
             return;
         }
 
-        const {error} = UpdateAdminSchema.validate(req.body);
+        const {error} = UpdateUserSchema.validate(req.body);
 
         if (error) {
             httpUnprocessableEntity(res, error.message);
@@ -98,7 +98,7 @@ class UserController {
         httpOk(res, updatedUser);
     }
 
-    static updateUser = (req: Request, res: Response) => {
+    static updateAdmin = (req: Request, res: Response) => {
         const userId: string = req.params.id;
         const user = this.users.find((user) => user.id === userId);
 
@@ -107,7 +107,7 @@ class UserController {
             return;
         }
 
-        const {error} = UpdateUserSchema.validate(req.body);
+        const {error} = UpdateAdminSchema.validate(req.body);
 
         if (error) {
             httpUnprocessableEntity(res, error.message);
