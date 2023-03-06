@@ -1,16 +1,18 @@
 import {Request, Response} from 'express';
 import {IUserLogin, UserLoginSchema} from '../models/IUserLogin';
 import {
-    httpBadRequest,
+    httpBadRequest, httpNoContent,
     httpNotFound, httpOk,
     httpUnauthorized,
 } from '../services/httpResponsesService';
 import UserController from './UserController';
+import {gererateToken} from '../services/jwtService';
+import '../models/ISession';
 
 class AuthController {
     static login(req: Request, res: Response) {
         const userToLogin: IUserLogin = {
-            username: req.body.username,
+            email: req.body.email,
             password: req.body.password,
         }
 
@@ -20,7 +22,7 @@ class AuthController {
             return;
         }
 
-        const user = UserController.users.filter((user) => user.username === userToLogin.username)[0];
+        const user = UserController.users.filter((user) => user.email === userToLogin.email)[0];
         if (!user) {
             httpNotFound(res);
             return;
@@ -31,19 +33,19 @@ class AuthController {
             return;
         }
 
+        const token = gererateToken(user);
+        req.session.token = token;
         req.session.user = {
             id: user.id,
             role: user.role,
         };
-        httpOk(res, user);
+        httpOk(res, {
+            token,
+            user,
+        });
     }
 
     static current(req: Request, res: Response) {
-        if (req.session.user === undefined) {
-            httpBadRequest(res, 'You\'re not login!');
-            return;
-        }
-
         const user = UserController.users.filter((user) => user.id === req.session.user?.id)[0];
         if (!user) {
             httpNotFound(res);
@@ -54,13 +56,12 @@ class AuthController {
     }
 
     static logout(req: Request, res: Response) {
-        if (req.session.user === undefined) {
-            httpBadRequest(res, 'You\'re not login!');
-            return;
-        }
-
+        req.session.token = undefined;
         req.session.user = undefined;
-        httpOk(res, 'You\'re now logout!');
+        req.session.destroy(() => {
+            console.log('Session destroyed');
+        });
+        httpNoContent(res);
     }
 }
 

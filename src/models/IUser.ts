@@ -29,7 +29,7 @@ export interface IUser {
     role: 'admin' | 'manager' | 'artist',
     email: string,
     password: string,
-    username?: string,
+    pseudo?: string,
     banned?: boolean,
     inscriptionDate: Date,
 }
