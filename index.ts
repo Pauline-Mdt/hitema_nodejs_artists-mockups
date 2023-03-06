@@ -25,10 +25,6 @@ app.use(session({
 
 app.use(routes);
 
-app.get('/', (req, res) => {
-    res.send('Connected to API.')
-});
-
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`)
 });

@@ -2,11 +2,15 @@ import {CreateUserSchema, IUser, UpdateAdminSchema, UpdateUserSchema} from '../m
 import {Request, Response} from 'express';
 import * as crypto from 'crypto';
 import {
-    httpCreated,
+    httpCreated, httpNoContent,
     httpNotFound,
     httpOk,
     httpUnprocessableEntity,
 } from '../services/httpResponsesService';
+import '../models/ISession';
+import {hashPassword} from '../services/hashService';
+import {removePassword} from '../services/passwordService';
+import '../models/IRequest';
 
 class UserController {
     static users: IUser[] = [
@@ -14,35 +18,10 @@ class UserController {
             id: crypto.randomUUID(),
             role: 'admin',
             email: 'admin@gmail.com',
-            password: 'admin',
+            password: hashPassword('admin'),
             inscriptionDate: new Date(),
         }
     ];
-
-    static createManager = (req: Request, res: Response) => {
-        const newManager: IUser = {
-            id: crypto.randomUUID(),
-            role: 'manager',
-            email: req.body.email,
-            password: req.body.password,
-            inscriptionDate: new Date(),
-        };
-        const {error} = CreateUserSchema.validate(newManager);
-
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
-            return;
-        }
-
-        if (this.users.filter((user) => user.email === newManager.email).length > 0) {
-            httpUnprocessableEntity(res, 'Email already taken.')
-            return;
-        }
-
-        this.users.push(newManager);
-
-        httpCreated(res, newManager);
-    }
 
     static createArtist = (req: Request, res: Response) => {
         const newArtist: IUser = {
@@ -73,11 +52,36 @@ class UserController {
 
         this.users.push(newArtist);
 
-        httpCreated(res, newArtist);
+        httpCreated(res, removePassword(newArtist));
+    }
+
+    static createManager = (req: Request, res: Response) => {
+        const newManager: IUser = {
+            id: crypto.randomUUID(),
+            role: 'manager',
+            email: req.body.email,
+            password: req.body.password,
+            inscriptionDate: new Date(),
+        };
+        const {error} = CreateUserSchema.validate(newManager);
+
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
+
+        if (this.users.filter((user) => user.email === newManager.email).length > 0) {
+            httpUnprocessableEntity(res, 'Email already taken.')
+            return;
+        }
+
+        this.users.push(newManager);
+
+        httpCreated(res, removePassword(newManager));
     }
 
     static getAllUsers = (req: Request, res: Response) => {
-        httpOk(res, this.users);
+        httpOk(res, this.users.map((user) => removePassword(user)));
     }
 
     static getOneUser = (req: Request, res: Response) => {
@@ -89,7 +93,17 @@ class UserController {
             return;
         }
 
-        httpOk(res, user);
+        httpOk(res, removePassword(user));
+    }
+
+    static getCurrentUser(req: Request, res: Response) {
+        const user = UserController.users.filter((user) => user.id === req.auth.id)[0];
+        if (!user) {
+            httpNotFound(res);
+            return;
+        }
+
+        httpOk(res, removePassword(user));
     }
 
     static updateUser = (req: Request, res: Response) => {
@@ -115,7 +129,7 @@ class UserController {
 
         this.users = this.users.splice(this.users.indexOf(user), 1, updatedUser);
 
-        httpOk(res, updatedUser);
+        httpOk(res, removePassword(updatedUser));
     }
 
     static updateAdmin = (req: Request, res: Response) => {
@@ -141,7 +155,7 @@ class UserController {
 
         this.users = this.users.splice(this.users.indexOf(user), 1, updatedUser);
 
-        httpOk(res, updatedUser);
+        httpOk(res, removePassword(updatedUser));
     }
 
     static banUser = (req: Request, res: Response) => {
@@ -155,7 +169,7 @@ class UserController {
 
         user.banned = true;
 
-        httpOk(res, user);
+        httpOk(res, removePassword(user));
     }
 
     static deleteUser = (req: Request, res: Response) => {
@@ -169,7 +183,7 @@ class UserController {
 
         this.users.splice(this.users.indexOf(user), 1);
 
-        httpOk(res, user);
+        httpNoContent(res);
     }
 }
 

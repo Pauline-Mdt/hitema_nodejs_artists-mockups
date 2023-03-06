@@ -6,6 +6,9 @@ import authRoutes from './authRoutes';
 
 const routes = express.Router();
 
+routes.get('', (req, res) => {
+    res.send('Connected to API.')
+});
 routes.use('/mockups', mockupsRoutes);
 routes.use('/approvals', approvalRoutes);
 routes.use('/users', usersRoutes);
