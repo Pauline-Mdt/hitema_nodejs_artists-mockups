@@ -1,4 +1,5 @@
 import joi from 'joi';
+import {IPassword} from './IPassword';
 
 export const CreateUserSchema = joi.object({
     id: joi.string().required(),
@@ -28,7 +29,7 @@ export interface IUser {
     id: string,
     role: 'admin' | 'manager' | 'artist',
     email: string,
-    password: string,
+    password: IPassword,
     pseudo?: string,
     banned?: boolean,
     inscriptionDate: Date,

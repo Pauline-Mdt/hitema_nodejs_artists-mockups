@@ -7,7 +7,9 @@ import {
 } from '../services/httpResponsesService';
 import UserController from './UserController';
 import {gererateToken} from '../services/jwtService';
-import '../models/ISession';
+import {comparePassword} from '../services/hashService';
+import {removePassword} from '../services/passwordService';
+import '../models/IRequest';
 
 class AuthController {
     static login(req: Request, res: Response) {
@@ -28,39 +30,19 @@ class AuthController {
             return;
         }
 
-        if (user.password !== userToLogin.password) {
+        if (!comparePassword(userToLogin.password, user.password)) {
             httpUnauthorized(res, 'Wrong password.');
             return;
         }
 
-        const token = gererateToken(user);
-        req.session.token = token;
-        req.session.user = {
-            id: user.id,
-            role: user.role,
-        };
         httpOk(res, {
-            token,
-            user,
+            token: gererateToken(user),
+            user: removePassword(user),
         });
-    }
-
-    static current(req: Request, res: Response) {
-        const user = UserController.users.filter((user) => user.id === req.session.user?.id)[0];
-        if (!user) {
-            httpNotFound(res);
-            return;
-        }
-
-        httpOk(res, user);
     }
 
     static logout(req: Request, res: Response) {
-        req.session.token = undefined;
-        req.session.user = undefined;
-        req.session.destroy(() => {
-            console.log('Session destroyed');
-        });
+        req.auth = undefined;
         httpNoContent(res);
     }
 }

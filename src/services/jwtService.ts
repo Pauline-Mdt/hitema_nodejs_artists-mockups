@@ -5,6 +5,7 @@ export const gererateToken = (user: IUser) => {
     return jwt.sign(
         {
             id: user.id,
+            role: user.role,
         },
         (process.env.JWT_SECRET as jwt.Secret),
         {
