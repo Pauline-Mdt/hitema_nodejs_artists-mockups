@@ -6,7 +6,7 @@ import {Response} from 'express';
  * @param res
  * @param data Data to send in the response
  */
-export const httpOk = (res: Response, data: {}|[]) => {
+export const httpOk = (res: Response, data: object|[]) => {
     res.status(200)
         .json({
             status: 'OK',
@@ -19,7 +19,7 @@ export const httpOk = (res: Response, data: {}|[]) => {
  * @param res
  * @param data Data to send in the response
  */
-export const httpCreated = (res: Response, data: {}|[]) => {
+export const httpCreated = (res: Response, data: object|[]) => {
     res.status(201)
         .json({
             status: 'Created',
@@ -88,6 +88,15 @@ export const httpUnprocessableEntity = (res: Response, message: string) => {
     res.status(422)
         .json({
             status: 'Unprocessable Entity',
+            message,
+        });
+}
+
+// 500 - 599
+export const httpInternalServerError = (res: Response, message: string) => {
+    res.status(500)
+        .json({
+            status: 'Internal Server Error',
             message,
         });
 }

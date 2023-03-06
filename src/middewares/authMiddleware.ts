@@ -1,5 +1,3 @@
-import {NextFunction, Request, Response} from 'express';
-import {httpUnauthorized} from '../services/httpResponsesService';
 import {expressjwt} from 'express-jwt';
 
 export const tokenDefined = () => {
@@ -10,19 +8,10 @@ export const tokenDefined = () => {
 
     return expressjwt({ secret, algorithms: ["HS256"] }).unless({
         path: [
-            // public routes that don't require authentication
+            // Public routes that don't require authentication
+            '/',
             '/auth/login',
             '/users/register',
         ],
     });
-}
-
-export const isLogged = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.session.token;
-
-    if (token) {
-        next();
-    } else {
-        httpUnauthorized(res, 'Please login to access this ressource.');
-    }
 }

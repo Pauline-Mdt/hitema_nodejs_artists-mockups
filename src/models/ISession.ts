@@ -1,3 +1,5 @@
+import {SessionData} from 'express-session';
+
 declare module 'express-session' {
     interface SessionData {
         token: string;
@@ -7,5 +9,3 @@ declare module 'express-session' {
         }
     }
 }
-
-export {};
