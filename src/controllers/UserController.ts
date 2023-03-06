@@ -7,7 +7,6 @@ import {
     httpOk,
     httpUnprocessableEntity,
 } from '../services/httpResponsesService';
-import '../models/ISession';
 import {hashPassword} from '../services/hashService';
 import {removePassword} from '../services/passwordService';
 import '../models/IRequest';
@@ -97,7 +96,7 @@ class UserController {
     }
 
     static getCurrentUser(req: Request, res: Response) {
-        const user = UserController.users.filter((user) => user.id === req.auth.id)[0];
+        const user = UserController.users.filter((user) => user.id === req.auth?.id)[0];
         if (!user) {
             httpNotFound(res);
             return;

@@ -2,7 +2,7 @@ import {NextFunction, Request, Response} from 'express';
 import {httpForbidden} from '../services/httpResponsesService';
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-    const userRole = req.auth.role;
+    const userRole: string = req.auth?.role;
 
     if (userRole === 'admin') {
         next();
@@ -12,7 +12,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const isNotAdmin = (req: Request, res: Response, next: NextFunction) => {
-    const userRole = req.auth.role;
+    const userRole: string = req.auth?.role;
 
     if (userRole !== 'admin') {
         next();
@@ -22,7 +22,7 @@ export const isNotAdmin = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const isManager = (req: Request, res: Response, next: NextFunction) => {
-    const userRole = req.auth.role;
+    const userRole: string = req.auth?.role;
 
     if (userRole === 'manager') {
         next();
@@ -32,7 +32,7 @@ export const isManager = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const isArtist = (req: Request, res: Response, next: NextFunction) => {
-    const userRole = req.auth.role;
+    const userRole: string = req.auth?.role;
 
     if (userRole === 'artist') {
         next();

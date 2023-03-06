@@ -7,9 +7,9 @@ import {
 } from '../services/httpResponsesService';
 import UserController from './UserController';
 import {gererateToken} from '../services/jwtService';
-import '../models/ISession';
 import {comparePassword} from '../services/hashService';
 import {removePassword} from '../services/passwordService';
+import '../models/IRequest';
 
 class AuthController {
     static login(req: Request, res: Response) {
@@ -35,25 +35,14 @@ class AuthController {
             return;
         }
 
-        const token = gererateToken(user);
-        console.log(token);
-        req.session.token = token;
-        req.session.user = {
-            id: user.id,
-            role: user.role,
-        };
         httpOk(res, {
-            token,
+            token: gererateToken(user),
             user: removePassword(user),
         });
     }
 
     static logout(req: Request, res: Response) {
-        req.session.token = undefined;
-        req.session.user = undefined;
-        req.session.destroy(() => {
-            console.log('Session destroyed');
-        });
+        req.auth = undefined;
         httpNoContent(res);
     }
 }
