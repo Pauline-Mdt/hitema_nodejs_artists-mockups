@@ -9,9 +9,9 @@ import UserController from './src/controllers/UserController';
 dotenv.config();
 
 mongoose.connect('mongodb://127.0.0.1:27017/my_db')
-    .then(() => {
+    .then(async () => {
         console.log('Connected to MongoDB');
-        UserController.createAdmin();
+        await UserController.createAdmin();
     })
     .catch(err => console.error('Could not connect to MongoDB... Error: ', err));
 
