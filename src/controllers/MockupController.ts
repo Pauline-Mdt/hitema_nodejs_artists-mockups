@@ -1,61 +1,49 @@
-import {CreateMockupSchema, IMockup, UpdateMockupSchema} from '../models/IMockup';
+import {CreateMockupSchema, Mockup, UpdateMockupSchema} from '../models/IMockup';
 import {Request, Response} from 'express';
-import * as crypto from 'crypto';
 import {
-    httpCreated, httpForbidden,
+    httpCreated,
     httpNoContent,
     httpNotFound,
     httpOk,
     httpUnprocessableEntity,
 } from '../services/httpResponsesService';
-import {IUser} from '../models/IUser';
-import UserController from './UserController';
+import {User} from '../models/IUser';
+import {checkSchemaValidity} from '../services/modelsService';
 
 class MockupController {
-    static mockups: IMockup[] = [];
+    static createMockup = async (req: Request, res: Response) => {
+        checkSchemaValidity(CreateMockupSchema, req.body, res);
 
-    static createMockup = (req: Request, res: Response) => {
-        const userID: string = req.auth?.id;
-        const user: IUser = UserController.users.filter((user) => user.id === userID)[0];
-
-        if (user.banned) {
-            httpForbidden(res);
+        const ownerUser = await User.findById(req.body.userId);
+        if (!ownerUser) {
+            httpUnprocessableEntity(res, 'UserId is not valid.');
             return;
         }
 
-        const newMockup: IMockup = {
-            id: crypto.randomUUID(),
+        const newMockup = new Mockup({
             url: req.body.url,
             title: req.body.title,
-            validated: false,
-            userId: req.body.userId,
-        };
-        const {error} = CreateMockupSchema.validate(newMockup);
+            userId: ownerUser._id,
+        });
 
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
-            return;
-        }
-
-        this.mockups.push(newMockup);
-
-        httpCreated(res, newMockup);
+        await newMockup.save();
+        httpCreated(res, newMockup.toObject());
     }
 
-    static getAllMockups = (req: Request, res: Response) => {
+    static getAllMockups = async (req: Request, res: Response) => {
         const userRole: string = req.auth?.role;
         const userId: string = req.auth?.id;
+        const mockups = await Mockup.find();
 
         if (userRole === 'manager' || userRole === 'admin') {
-            httpOk(res, this.mockups);
+            httpOk(res, mockups.map((mockup) => mockup.toObject()));
         } else {
-            httpOk(res, this.mockups.filter((mockup) => mockup.userId === userId));
+            httpOk(res, mockups.filter((mockup) => mockup.userId.toString() === userId).map((mockup) => mockup.toObject()));
         }
     }
 
-    static getOneMockup = (req: Request, res: Response) => {
-        const mockupId: string = req.params.id;
-        const mockup = this.mockups.find((mockup) => mockup.id === mockupId);
+    static getOneMockup = async (req: Request, res: Response) => {
+        const mockup = await Mockup.findById(req.params.id);
 
         if (!mockup) {
             httpNotFound(res);
@@ -65,42 +53,33 @@ class MockupController {
         httpOk(res, mockup);
     }
 
-    static updateMockup = (req: Request, res: Response) => {
+    static updateMockup = async (req: Request, res: Response) => {
+        checkSchemaValidity(UpdateMockupSchema, req.body, res);
+
         const mockupId: string = req.params.id;
-        const mockup = this.mockups.find((mockup) => mockup.id === mockupId);
+        const mockup = await Mockup.findById(mockupId);
 
         if (!mockup) {
             httpNotFound(res);
             return;
         }
 
-        const {error} = UpdateMockupSchema.validate(req.body);
-
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
-            return;
-        }
-
-        const updatedMockup = {
+        const updatedMockup = new Mockup({
             ...mockup,
             ...req.body,
-        };
+        });
 
-        this.mockups.splice(this.mockups.indexOf(mockup), 1, updatedMockup);
-
-        httpOk(res, updatedMockup);
+        await Mockup.findByIdAndUpdate(mockupId, updatedMockup);
+        httpOk(res, updatedMockup.toObject());
     }
 
-    static deleteMockup = (req: Request, res: Response) => {
-        const mockupId: string = req.params.id;
-        const mockup = this.mockups.find((mockup) => mockup.id === mockupId);
+    static deleteMockup = async (req: Request, res: Response) => {
+        const mockup = await Mockup.findByIdAndRemove(req.params.id);
 
         if (!mockup) {
             httpNotFound(res);
             return;
         }
-
-        this.mockups.splice(this.mockups.indexOf(mockup), 1);
 
         httpNoContent(res);
     }

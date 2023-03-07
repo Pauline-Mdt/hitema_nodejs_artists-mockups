@@ -1,6 +1,5 @@
-import {CreateUserSchema, IUser, UpdateAdminSchema, UpdateUserSchema} from '../models/IUser';
+import {CreateUserSchema, UpdateAdminSchema, UpdateUserSchema, User} from '../models/IUser';
 import {Request, Response} from 'express';
-import * as crypto from 'crypto';
 import {
     httpCreated, httpNoContent,
     httpNotFound,
@@ -10,177 +9,159 @@ import {
 import {hashPassword} from '../services/hashService';
 import {removePassword} from '../services/passwordService';
 import '../models/IRequest';
+import {checkSchemaValidity} from '../services/modelsService';
 
 class UserController {
-    static users: IUser[] = [
-        {
-            id: crypto.randomUUID(),
-            role: 'admin',
-            email: 'admin@gmail.com',
-            password: hashPassword('admin'),
-            inscriptionDate: new Date(),
-        }
-    ];
+    static createAdmin = async () => {
+        const admin = await User.findOne({role: 'admin'});
 
-    static createArtist = (req: Request, res: Response) => {
-        const newArtist: IUser = {
-            id: crypto.randomUUID(),
-            role: 'artist',
-            email: req.body.email,
-            password: req.body.password,
-            pseudo: req.body.pseudo,
-            banned: false,
-            inscriptionDate: new Date(),
-        };
-        const {error} = CreateUserSchema.validate(newArtist);
+        if (!admin) {
+            const admin = new User({
+                role: 'admin',
+                email: 'admin@gmail.com',
+                password: hashPassword('admin'),
+                inscriptionDate: new Date(),
+            });
 
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
+            admin.save()
+                .then(() => console.log('Admin created.'))
+                .catch(err => console.error('Could not create admin... Error: ', err));
             return;
         }
 
-        if (this.users.filter((user) => user.email === newArtist.email).length > 0) {
+        console.log('Admin already exists.');
+    }
+
+    static createArtist = async (req: Request, res: Response) => {
+        checkSchemaValidity(CreateUserSchema, req.body, res);
+
+        const newArtist = new User({
+            role: 'artist',
+            email: req.body.email,
+            password: hashPassword(req.body.password),
+            pseudo: req.body.pseudo,
+            banned: false,
+        });
+        const users = await User.find();
+
+        if (users.filter((user) => user.email === newArtist.email).length > 0) {
             httpUnprocessableEntity(res, 'Email already taken.')
             return;
         }
 
-        if (this.users.filter((user) => user.pseudo === newArtist.pseudo).length > 0) {
+        if (newArtist.pseudo && users.filter((user) => user.pseudo === newArtist.pseudo).length > 0) {
             httpUnprocessableEntity(res, 'Pseudo already taken.')
             return;
         }
 
-        this.users.push(newArtist);
-
-        httpCreated(res, removePassword(newArtist));
+        await newArtist.save();
+        httpCreated(res, removePassword(newArtist.toObject()));
     }
 
-    static createManager = (req: Request, res: Response) => {
-        const newManager: IUser = {
-            id: crypto.randomUUID(),
+    static createManager = async (req: Request, res: Response) => {
+        checkSchemaValidity(CreateUserSchema, req.body, res);
+
+        const newManager = new User({
             role: 'manager',
             email: req.body.email,
-            password: req.body.password,
-            inscriptionDate: new Date(),
-        };
-        const {error} = CreateUserSchema.validate(newManager);
+            password: hashPassword(req.body.password),
+        });
+        const users = await User.find();
 
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
-            return;
-        }
-
-        if (this.users.filter((user) => user.email === newManager.email).length > 0) {
+        if (users.filter((user) => user.email === newManager.email).length > 0) {
             httpUnprocessableEntity(res, 'Email already taken.')
             return;
         }
 
-        this.users.push(newManager);
-
-        httpCreated(res, removePassword(newManager));
+        await newManager.save();
+        httpCreated(res, removePassword(newManager.toObject()));
     }
 
-    static getAllUsers = (req: Request, res: Response) => {
-        httpOk(res, this.users.map((user) => removePassword(user)));
+    static async getCurrentUser(req: Request, res: Response) {
+        const user = await User.findById(req.auth?.id);
+
+        if (!user) {
+            httpNotFound(res);
+            return;
+        }
+
+        httpOk(res, removePassword(user.toObject()));
     }
 
-    static getOneUser = (req: Request, res: Response) => {
+    static getAllUsers = async (req: Request, res: Response) => {
+        const users = await User.find();
+        httpOk(res, users.map((user) => removePassword(user.toObject())));
+    }
+
+    static getOneUser = async (req: Request, res: Response) => {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            httpNotFound(res);
+            return;
+        }
+
+        httpOk(res, removePassword(user.toObject()));
+    }
+
+    static updateUser = async (req: Request, res: Response) => {
+        checkSchemaValidity(UpdateUserSchema, req.body, res);
+
         const userId: string = req.params.id;
-        const user = this.users.find((user) => user.id === userId);
+        const user = await User.findById(userId);
 
         if (!user) {
             httpNotFound(res);
             return;
         }
 
-        httpOk(res, removePassword(user));
-    }
-
-    static getCurrentUser(req: Request, res: Response) {
-        const user = UserController.users.filter((user) => user.id === req.auth?.id)[0];
-        if (!user) {
-            httpNotFound(res);
-            return;
-        }
-
-        httpOk(res, removePassword(user));
-    }
-
-    static updateUser = (req: Request, res: Response) => {
-        const userId: string = req.params.id;
-        const user = this.users.find((user) => user.id === userId);
-
-        if (!user) {
-            httpNotFound(res);
-            return;
-        }
-
-        const {error} = UpdateUserSchema.validate(req.body);
-
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
-            return;
-        }
-
-        const updatedUser: IUser = {
+        const updatedUser = new User({
             ...user,
             ...req.body,
-        }
+        });
 
-        this.users.splice(this.users.indexOf(user), 1, updatedUser);
-
-        httpOk(res, removePassword(updatedUser));
+        await User.findByIdAndUpdate(userId, updatedUser);
+        httpOk(res, removePassword(updatedUser.toObject()));
     }
 
-    static updateAdmin = (req: Request, res: Response) => {
+    static updateAdmin = async (req: Request, res: Response) => {
+        checkSchemaValidity(UpdateAdminSchema, req.body, res);
+
         const userId: string = req.params.id;
-        const user = this.users.find((user) => user.id === userId);
+        const user = await User.findById(userId);
 
         if (!user) {
             httpNotFound(res);
             return;
         }
 
-        const {error} = UpdateAdminSchema.validate(req.body);
-
-        if (error) {
-            httpUnprocessableEntity(res, error.message);
-            return;
-        }
-
-        const updatedUser: IUser = {
+        const updatedUser = new User({
             ...user,
             password: hashPassword(req.body.password),
-        }
+        });
 
-        this.users.splice(this.users.indexOf(user), 1, updatedUser);
-
+        await User.findByIdAndUpdate(userId, updatedUser);
         httpOk(res, removePassword(updatedUser));
     }
 
-    static banUser = (req: Request, res: Response) => {
-        const userId: string = req.params.id;
-        const user = this.users.find((user) => user.id === userId);
+    static banUser = async (req: Request, res: Response) => {
+        const user = await User.findByIdAndUpdate(req.params.id, {banned: true}, {new: true});
 
         if (!user) {
             httpNotFound(res);
             return;
         }
 
-        user.banned = true;
-
-        httpOk(res, removePassword(user));
+        httpOk(res, removePassword(user.toObject()));
     }
 
-    static deleteUser = (req: Request, res: Response) => {
-        const userId: string = req.params.id;
-        const user = this.users.find((user) => user.id === userId);
+    static deleteUser = async (req: Request, res: Response) => {
+        const user = await User.findByIdAndRemove(req.params.id)
 
         if (!user) {
             httpNotFound(res);
             return;
         }
-
-        this.users.splice(this.users.indexOf(user), 1);
 
         httpNoContent(res);
     }
