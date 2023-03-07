@@ -9,7 +9,6 @@ import UserController from './UserController';
 import {gererateToken} from '../services/jwtService';
 import {comparePassword} from '../services/hashService';
 import {removePassword} from '../services/passwordService';
-import '../models/IRequest';
 
 class AuthController {
     static login(req: Request, res: Response) {
@@ -42,7 +41,6 @@ class AuthController {
     }
 
     static logout(req: Request, res: Response) {
-        req.auth = undefined;
         httpNoContent(res);
     }
 }

@@ -126,7 +126,7 @@ class UserController {
             ...req.body,
         }
 
-        this.users = this.users.splice(this.users.indexOf(user), 1, updatedUser);
+        this.users.splice(this.users.indexOf(user), 1, updatedUser);
 
         httpOk(res, removePassword(updatedUser));
     }
@@ -149,10 +149,10 @@ class UserController {
 
         const updatedUser: IUser = {
             ...user,
-            ...req.body,
+            password: hashPassword(req.body.password),
         }
 
-        this.users = this.users.splice(this.users.indexOf(user), 1, updatedUser);
+        this.users.splice(this.users.indexOf(user), 1, updatedUser);
 
         httpOk(res, removePassword(updatedUser));
     }
