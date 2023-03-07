@@ -46,7 +46,7 @@ class MockupController {
         const userRole: string = req.auth?.role;
         const userId: string = req.auth?.id;
 
-        if (userRole === 'manager') {
+        if (userRole === 'manager' || userRole === 'admin') {
             httpOk(res, this.mockups);
         } else {
             httpOk(res, this.mockups.filter((mockup) => mockup.userId === userId));

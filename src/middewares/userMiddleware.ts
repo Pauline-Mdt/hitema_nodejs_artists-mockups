@@ -53,13 +53,13 @@ export const isNotArtist = (req: Request, res: Response, next: NextFunction) => 
     }
 }
 
-export const isOwnerOrManager = (req: Request, res: Response, next: NextFunction) => {
+export const isOwnerOrManagerOrAdmin = (req: Request, res: Response, next: NextFunction) => {
     const userRole: string = req.auth?.role;
     const userId: string = req.auth?.id;
     const mockupId: string = req.params.id;
     const mockup: IMockup = MockupController.mockups.filter((mockup) => mockup.id === mockupId)[0];
 
-    if (userRole === 'manager' || userId === mockup.userId) {
+    if (userId === mockup.userId || userRole === 'manager' || userRole === 'admin') {
         next();
     } else {
         httpForbidden(res);
