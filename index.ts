@@ -4,10 +4,16 @@ import express from 'express';
 import routes from './src/routes';
 import {tokenDefined} from './src/middewares/authMiddleware';
 import {handleErrors} from './src/middewares/errorMiddleware';
+import UserController from './src/controllers/UserController';
 
 dotenv.config();
 
-mongoose.connect('mongodb://localhost:27017/my_db');
+mongoose.connect('mongodb://127.0.0.1:27017/my_db')
+    .then(() => {
+        console.log('Connected to MongoDB');
+        UserController.createAdmin();
+    })
+    .catch(err => console.error('Could not connect to MongoDB... Error: ', err));
 
 const port = 3000;
 const app = express();

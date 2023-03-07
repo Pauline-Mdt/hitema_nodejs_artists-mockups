@@ -5,25 +5,25 @@ import {
     httpNotFound, httpOk,
     httpUnauthorized,
 } from '../services/httpResponsesService';
-import UserController from './UserController';
 import {gererateToken} from '../services/jwtService';
 import {comparePassword} from '../services/hashService';
 import {removePassword} from '../services/passwordService';
+import {User} from '../models/IUser';
 
 class AuthController {
-    static login(req: Request, res: Response) {
-        const userToLogin: IUserLogin = {
-            email: req.body.email,
-            password: req.body.password,
-        }
-
+    static async login(req: Request, res: Response) {
         const {error} = UserLoginSchema.validate(req.body);
         if (error) {
             httpBadRequest(res, error.message);
             return;
         }
 
-        const user = UserController.users.filter((user) => user.email === userToLogin.email)[0];
+        const userToLogin: IUserLogin = {
+            email: req.body.email,
+            password: req.body.password,
+        }
+        const user = await User.findOne({email: userToLogin.email});
+
         if (!user) {
             httpNotFound(res);
             return;
@@ -36,7 +36,7 @@ class AuthController {
 
         httpOk(res, {
             token: gererateToken(user),
-            user: removePassword(user),
+            user: removePassword(user.toObject()),
         });
     }
 

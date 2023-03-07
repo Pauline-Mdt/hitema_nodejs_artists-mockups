@@ -1,24 +1,17 @@
 import joi from 'joi';
 import {IPassword} from './IPassword';
+import mongoose from 'mongoose';
 
 export const CreateUserSchema = joi.object({
-    id: joi.string().required(),
-    role: joi.string().valid('admin', 'manager', 'artist').required(),
     email: joi.string().email().required(),
     password: joi.string().alphanum().required(),
     pseudo: joi.string().alphanum().optional(),
-    banned: joi.boolean().optional(),
-    inscriptionDate: joi.date().required(),
 }).required();
 
 export const UpdateUserSchema = joi.object({
-    id: joi.string().optional(),
-    role: joi.string().valid('admin', 'manager', 'artist').optional(),
     email: joi.string().email().optional(),
     password: joi.string().alphanum().optional(),
     pseudo: joi.string().alphanum().optional(),
-    banned: joi.boolean().optional(),
-    inscriptionDate: joi.date().optional(),
 }).required();
 
 export const UpdateAdminSchema = joi.object({
@@ -26,11 +19,28 @@ export const UpdateAdminSchema = joi.object({
 }).required();
 
 export interface IUser {
-    id: string,
+    _id?: string,
     role: 'admin' | 'manager' | 'artist',
     email: string,
     password: IPassword,
     pseudo?: string,
     banned?: boolean,
-    inscriptionDate: Date,
 }
+
+const userSchema = new mongoose.Schema<IUser>(
+    {
+    role: String,
+    email: String,
+    password: {
+        password: String,
+        salt: String,
+    },
+    pseudo: String,
+    banned: Boolean,
+    },
+    {
+        timestamps: true
+    }
+);
+
+export const User = mongoose.model<IUser>('User', userSchema);

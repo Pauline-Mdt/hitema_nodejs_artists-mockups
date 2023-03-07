@@ -4,7 +4,7 @@ import {IUser} from '../models/IUser';
 export const gererateToken = (user: IUser) => {
     return jwt.sign(
         {
-            id: user.id,
+            id: user._id,
             role: user.role,
         },
         (process.env.JWT_SECRET as jwt.Secret),
