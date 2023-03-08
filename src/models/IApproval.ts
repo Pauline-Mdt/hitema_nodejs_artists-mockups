@@ -2,14 +2,12 @@ import joi from 'joi';
 import mongoose, {Schema, Types} from 'mongoose';
 
 export const CreateApprovalSchema = joi.object({
-    mockupId: joi.string().required(),
+    mockupId: joi.string().hex().length(24).required(),
     approved: joi.boolean().required(),
     comment: joi.string().required(),
 }).required();
 
 export const UpdateApprovalSchema = joi.object({
-    mockupId: joi.string().optional(),
-    userId: joi.string().optional(),
     approved: joi.boolean().optional(),
     comment: joi.string().optional(),
 }).required();

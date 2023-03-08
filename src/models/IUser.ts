@@ -2,16 +2,26 @@ import joi from 'joi';
 import {IPassword} from './IPassword';
 import mongoose from 'mongoose';
 
-export const CreateUserSchema = joi.object({
+export const CreateArtistSchema = joi.object({
     email: joi.string().email().required(),
     password: joi.string().alphanum().required(),
     pseudo: joi.string().alphanum().optional(),
 }).required();
 
-export const UpdateUserSchema = joi.object({
+export const CreateManagerSchema = joi.object({
+    email: joi.string().email().required(),
+    password: joi.string().alphanum().required(),
+}).required();
+
+export const UpdateArtistSchema = joi.object({
     email: joi.string().email().optional(),
     password: joi.string().alphanum().optional(),
     pseudo: joi.string().alphanum().optional(),
+}).required();
+
+export const UpdateManagerSchema = joi.object({
+    email: joi.string().email().optional(),
+    password: joi.string().alphanum().optional(),
 }).required();
 
 export const UpdateAdminSchema = joi.object({

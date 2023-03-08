@@ -37,7 +37,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"admin@gmail.com\",\n    \"password\": \"admin\"\n}",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"admin\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -98,7 +98,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"artist@gmail.com\",\n    \"password\": \"artist\",\n    \"pseudo\": \"mamamia\"\n}",
+							"raw": "{\n    \"email\": \"artist@example.com\",\n    \"password\": \"artist\",\n    \"pseudo\": \"artist\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -125,7 +125,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"manager@gmail.com\",\n    \"password\": \"manager\"\n}",
+							"raw": "{\n    \"email\": \"manager@example.com\",\n    \"password\": \"manager\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -133,12 +133,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{URL}}/users",
+							"raw": "{{URL}}/users/manager",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
-								"users"
+								"users",
+								"manager"
 							]
 						}
 					},
@@ -156,30 +157,6 @@
 							],
 							"path": [
 								"users"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "getOne",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{URL}}/users/:id",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "5f98d175-7aa7-44f9-bc2b-b3a5e1c845bc"
-								}
 							]
 						}
 					},
@@ -204,19 +181,10 @@
 					"response": []
 				},
 				{
-					"name": "updateUser",
+					"name": "getOne",
 					"request": {
-						"method": "PUT",
+						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"url\": \"https://github.com/Pauline-Mdt/hitema_nodejs_artists-mockups\",\n    \"title\": \"ma super musique\",\n    \"userId\": \"bsbgnrfnrgrfls\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
 							"raw": "{{URL}}/users/:id",
 							"host": [
@@ -229,7 +197,75 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "0dd3f797-307c-4f8c-98cb-71b39a927aec"
+									"value": "6408ab933e6ed84bc3baca53"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateArtist",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"pseudo\": \"superstar\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/users/artist/:id",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users",
+								"artist",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "640862113c3597021178f683"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateManager",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/users/manager/:id",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users",
+								"manager",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "640862113c3597021178f683"
 								}
 							]
 						}
@@ -251,44 +287,37 @@
 							}
 						},
 						"url": {
-							"raw": "{{URL}}/users/:id/admin",
+							"raw": "{{URL}}/users/admin",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
 								"users",
-								":id",
 								"admin"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "6e5ad96a-acd2-487c-bbf8-1f9bc6e8ce93"
-								}
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "banUser",
+					"name": "banArtist",
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{URL}}/users/:id/ban",
+							"raw": "{{URL}}/users/ban/:id",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
 								"users",
-								":id",
-								"ban"
+								"ban",
+								":id"
 							],
 							"variable": [
 								{
 									"key": "id",
-									"value": "64074206021902a61395c6a5"
+									"value": "640861173c3597021178f67e"
 								}
 							]
 						}
@@ -312,7 +341,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "64074073a10eecd6254de83e"
+									"value": "6408aeb67d8937e315f1378e"
 								}
 							]
 						}
@@ -331,7 +360,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"url\": \"https://github.com/Pauline-Mdt/hitema_nodejs_artists-mockups\",\n    \"title\": \"test\",\n    \"userId\": \"bsbgnrfnrgrfls\"\n}",
+							"raw": "{\n    \"url\": \"https://github.com/Pauline-Mdt/hitema_nodejs_artists-mockups\",\n    \"title\": \"un super son\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -384,7 +413,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "5f98d175-7aa7-44f9-bc2b-b3a5e1c845bc"
+									"value": "6408b04cbf0969886f65623a"
 								}
 							]
 						}
@@ -398,7 +427,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"url\": \"https://github.com/Pauline-Mdt/hitema_nodejs_artists-mockups\",\n    \"title\": \"ma super musique\",\n    \"userId\": \"bsbgnrfnrgrfls\"\n}",
+							"raw": "{\n    \"title\": \"mon premier son\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -417,7 +446,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "0dd3f797-307c-4f8c-98cb-71b39a927aec"
+									"value": "6408648ee03da26057eee3eb"
 								}
 							]
 						}
@@ -460,7 +489,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"mockupId\": \"87e02339-cb75-4486-83eb-65e1fbed3923\",\n    \"userId\": \"46c0f191-3daf-4043-b23a-daf464bf760a\",\n    \"approved\": true,\n    \"comment\": \"nhbndxgbrimovnxedkswz\"\n}",
+							"raw": "{\n    \"mockupId\": \"6408b043bf0969886f656237\",\n    \"approved\": true,\n    \"comment\": \"un commentaire lambda\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -513,7 +542,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "ef082842-a111-4a65-9539-c2a37c28ed62"
+									"value": "6408648ee03da26057eee3eb"
 								}
 							]
 						}
@@ -527,7 +556,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"approved\": false\n}",
+							"raw": "{\n    \"approved\": true\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -546,7 +575,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "ca063cf3-32b3-45af-b025-ed9119609bac"
+									"value": "64089dfe214e1f2b12c3de57"
 								}
 							]
 						}
@@ -570,7 +599,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "ef082842-a111-4a65-9539-c2a37c28ed62"
+									"value": "64089d25cccaf836f38c0d32"
 								}
 							]
 						}
@@ -625,6 +654,11 @@
 		}
 	],
 	"variable": [
+		{
+			"key": "URL",
+			"value": "localhost:3000",
+			"type": "string"
+		},
 		{
 			"key": "TOKEN",
 			"value": ""

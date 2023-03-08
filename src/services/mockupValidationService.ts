@@ -1,18 +1,7 @@
-import Joi from 'joi';
-import {httpUnprocessableEntity} from './httpResponsesService';
-import {Response} from 'express';
 import {Types} from 'mongoose';
 import {User} from '../models/IUser';
 import {Approval} from '../models/IApproval';
 import {Mockup} from '../models/IMockup';
-
-export const checkSchemaValidity = (schema: Joi.ObjectSchema, data: {}, res: Response) => {
-    const {error} = schema.validate(data);
-    if (error) {
-        httpUnprocessableEntity(res, error.message);
-        return;
-    }
-}
 
 export const checkIfAllManagersGaveApproval = async (mockupId: Types.ObjectId) => {
     const numberOfManagers = await User.countDocuments({role: 'manager'});
@@ -31,7 +20,7 @@ export const setMockupValidity = async (mockupId: Types.ObjectId) => {
             : isRejected++;
     });
 
-    isApproved >= isRejected ?
+    isApproved > isRejected ?
         await Mockup.findByIdAndUpdate(mockupId, {validated: true})
         : await Mockup.findByIdAndUpdate(mockupId, {validated: false});
 }

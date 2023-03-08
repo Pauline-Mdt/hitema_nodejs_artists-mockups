@@ -7,35 +7,42 @@ import {
     httpOk,
     httpUnprocessableEntity,
 } from '../services/httpResponsesService';
-import {User} from '../models/IUser';
-import {checkIfAllManagersGaveApproval, checkSchemaValidity, setMockupValidity} from '../services/modelsService';
+import {checkIfAllManagersGaveApproval, setMockupValidity} from '../services/mockupValidationService';
+import {Mockup} from '../models/IMockup';
 
 class ApprovalController {
     static createApproval = async (req: Request, res: Response) => {
-        checkSchemaValidity(CreateApprovalSchema, req.body, res);
-
-        const user = await User.findById(req.body.userId);
-        if (!user) {
-            httpUnprocessableEntity(res, 'UserId is not valid.');
+        const {error} = CreateApprovalSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
             return;
         }
 
-        const mockup = await User.findById(req.body.mockupId);
+        const mockup = await Mockup.findById(req.body.mockupId);
         if (!mockup) {
             httpUnprocessableEntity(res, 'MockupId is not valid.');
             return;
         }
 
+        const approvals = await Approval.find({
+            mockupId: mockup._id,
+            userId: req.auth?.id,
+        });
+        if (approvals.length > 0) {
+            httpUnprocessableEntity(res, 'You already gave an approval for this mockup.');
+            return;
+        }
+
         const newApproval = new Approval({
             mockupId: mockup._id,
-            userId: user._id,
+            userId: req.auth?.id,
             approved: req.body.approved,
             comment: req.body.comment,
         });
 
         await newApproval.save();
         if (await checkIfAllManagersGaveApproval(newApproval.mockupId)) {
-            setMockupValidity(newApproval.mockupId);
+            await setMockupValidity(newApproval.mockupId);
         }
         httpCreated(res, newApproval.toObject());
     }
@@ -57,26 +64,23 @@ class ApprovalController {
     }
 
     static updateApproval = async (req: Request, res: Response) => {
-        checkSchemaValidity(UpdateApprovalSchema, req.body, res);
+        const {error} = UpdateApprovalSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
 
-        const approvalId: string = req.params.id;
-        const approval = await Approval.findById(approvalId);
+        const approval = await Approval.findByIdAndUpdate(req.params.id, req.body, {new: true});
 
         if (!approval) {
             httpNotFound(res);
             return;
         }
 
-        const updatedApproval = new Approval({
-            ...approval,
-            ...req.body,
-        });
-
-        await Approval.findByIdAndUpdate(approvalId, updatedApproval);
-        if (await checkIfAllManagersGaveApproval(updatedApproval.mockupId)) {
-            setMockupValidity(updatedApproval.mockupId);
+        if (await checkIfAllManagersGaveApproval(approval.mockupId)) {
+            setMockupValidity(approval.mockupId);
         }
-        httpOk(res, updatedApproval.toObject());
+        httpOk(res, approval.toObject());
     }
 
     static deleteApproval = async (req: Request, res: Response) => {

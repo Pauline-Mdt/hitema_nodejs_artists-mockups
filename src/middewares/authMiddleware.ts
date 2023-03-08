@@ -1,12 +1,13 @@
 import {expressjwt} from 'express-jwt';
+import {JWT_SECRET} from '../config';
 
 export const tokenDefined = () => {
-    const secret = process.env.JWT_SECRET;
+    const secret = JWT_SECRET;
     if (!secret) {
-        throw new Error("JWT_SECRET is not deﬁned");
+        throw new Error('JWT_SECRET is not deﬁned');
     }
 
-    return expressjwt({ secret, algorithms: ["HS256"] }).unless({
+    return expressjwt({ secret, algorithms: ['HS256'] }).unless({
         path: [
             // Public routes that don't require authentication
             '/',

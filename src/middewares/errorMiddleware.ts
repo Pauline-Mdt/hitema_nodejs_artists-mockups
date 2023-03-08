@@ -1,18 +1,17 @@
 import {NextFunction, Request, Response} from 'express';
 import {httpBadRequest, httpInternalServerError, httpUnauthorized} from '../services/httpResponsesService';
-import jwt from 'jsonwebtoken';
 
-export const handleErrors = (err: jwt.JsonWebTokenError, req: Request, res:Response, next: NextFunction) => {
-    // if (typeof err === 'string') {
-    //     httpBadRequest(res, err);
-    //     return;
-    // }
-
-    if (err.name === 'UnauthorizedError') {
-        httpUnauthorized(res, 'You\'re not login : Invalid token.');
+export const handleErrors = (err: any, req: Request, res:Response, next: NextFunction) => {
+    if (err.status === 400) {
+        httpBadRequest(res, err.message);
         return;
     }
 
-    console.log(err);
+    if (err.status === 401) {
+        httpUnauthorized(res, 'You\'re not login - Invalid token: ' + err.message);
+        return;
+    }
+
+    console.error(err);
     httpInternalServerError(res, err.message);
 }

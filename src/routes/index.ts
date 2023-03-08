@@ -1,6 +1,6 @@
 import express from 'express';
 import mockupsRoutes from './mockupsRoutes';
-import approvalRoutes from './approvalRoutes';
+import approvalsRoutes from './approvalsRoutes';
 import usersRoutes from './usersRoutes';
 import authRoutes from './authRoutes';
 
@@ -10,7 +10,7 @@ routes.get('', (req, res) => {
     res.send('Connected to API.')
 });
 routes.use('/mockups', mockupsRoutes);
-routes.use('/approvals', approvalRoutes);
+routes.use('/approvals', approvalsRoutes);
 routes.use('/users', usersRoutes);
 routes.use('/auth', authRoutes);
 

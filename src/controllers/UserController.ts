@@ -1,4 +1,11 @@
-import {CreateUserSchema, UpdateAdminSchema, UpdateUserSchema, User} from '../models/IUser';
+import {
+    CreateArtistSchema,
+    CreateManagerSchema,
+    UpdateAdminSchema,
+    UpdateArtistSchema,
+    UpdateManagerSchema,
+    User,
+} from '../models/IUser';
 import {Request, Response} from 'express';
 import {
     httpCreated, httpNoContent,
@@ -9,18 +16,25 @@ import {
 import {hashPassword} from '../services/hashService';
 import {removePassword} from '../services/passwordService';
 import '../models/IRequest';
-import {checkSchemaValidity} from '../services/modelsService';
+import {ADMIN_EMAIL, ADMIN_PASSWORD} from '../config';
 
 class UserController {
     static createAdmin = async () => {
         const admin = await User.findOne({role: 'admin'});
 
         if (!admin) {
+            if (!ADMIN_EMAIL) {
+                throw new Error('ADMIN_EMAIL is not deﬁned');
+            }
+
+            if (!ADMIN_PASSWORD) {
+                throw new Error('ADMIN_PASSWORD is not deﬁned');
+            }
+
             const admin = new User({
                 role: 'admin',
-                email: 'admin@gmail.com',
-                password: hashPassword('admin'),
-                inscriptionDate: new Date(),
+                email: ADMIN_EMAIL,
+                password: hashPassword(ADMIN_PASSWORD),
             });
 
             admin.save()
@@ -33,7 +47,11 @@ class UserController {
     }
 
     static createArtist = async (req: Request, res: Response) => {
-        checkSchemaValidity(CreateUserSchema, req.body, res);
+        const {error} = CreateArtistSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
 
         const newArtist = new User({
             role: 'artist',
@@ -59,14 +77,18 @@ class UserController {
     }
 
     static createManager = async (req: Request, res: Response) => {
-        checkSchemaValidity(CreateUserSchema, req.body, res);
+        const {error} = CreateManagerSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
 
         const newManager = new User({
             role: 'manager',
             email: req.body.email,
             password: hashPassword(req.body.password),
         });
-        const users = await User.find();
+        const users = await User.find({email: newManager.email});
 
         if (users.filter((user) => user.email === newManager.email).length > 0) {
             httpUnprocessableEntity(res, 'Email already taken.')
@@ -77,7 +99,12 @@ class UserController {
         httpCreated(res, removePassword(newManager.toObject()));
     }
 
-    static async getCurrentUser(req: Request, res: Response) {
+    static getAllUsers = async (req: Request, res: Response) => {
+        const users = await User.find();
+        httpOk(res, users.map((user) => removePassword(user.toObject())));
+    }
+
+    static getCurrentUser = async (req: Request, res: Response) =>{
         const user = await User.findById(req.auth?.id);
 
         if (!user) {
@@ -86,11 +113,6 @@ class UserController {
         }
 
         httpOk(res, removePassword(user.toObject()));
-    }
-
-    static getAllUsers = async (req: Request, res: Response) => {
-        const users = await User.find();
-        httpOk(res, users.map((user) => removePassword(user.toObject())));
     }
 
     static getOneUser = async (req: Request, res: Response) => {
@@ -104,51 +126,79 @@ class UserController {
         httpOk(res, removePassword(user.toObject()));
     }
 
-    static updateUser = async (req: Request, res: Response) => {
-        checkSchemaValidity(UpdateUserSchema, req.body, res);
+    static updateArtist = async (req: Request, res: Response) => {
+        const {error} = UpdateArtistSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
 
-        const userId: string = req.params.id;
-        const user = await User.findById(userId);
+        const changes = req.body.password ?
+            {
+                ...req.body,
+                password: hashPassword(req.body.password),
+            } :
+            {...req.body}
+        const user = await User.findByIdAndUpdate(req.params.id, changes, {new: true});
 
         if (!user) {
             httpNotFound(res);
             return;
         }
 
-        const updatedUser = new User({
-            ...user,
-            ...req.body,
-        });
+        httpOk(res, removePassword(user.toObject()));
+    }
 
-        await User.findByIdAndUpdate(userId, updatedUser);
-        httpOk(res, removePassword(updatedUser.toObject()));
+    static updateManager = async (req: Request, res: Response) => {
+        const {error} = UpdateManagerSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
+
+        const changes = req.body.password ?
+            {
+                ...req.body,
+                password: hashPassword(req.body.password),
+            } :
+            {...req.body}
+        const user = await User.findByIdAndUpdate(req.params.id, changes, {new: true});
+
+        if (!user) {
+            httpNotFound(res);
+            return;
+        }
+
+        httpOk(res, removePassword(user.toObject()));
     }
 
     static updateAdmin = async (req: Request, res: Response) => {
-        checkSchemaValidity(UpdateAdminSchema, req.body, res);
+        const {error} = UpdateAdminSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
 
-        const userId: string = req.params.id;
-        const user = await User.findById(userId);
+        const user = await User.findByIdAndUpdate(req.auth?.id, {password: hashPassword(req.body.password)}, {new: true});
 
         if (!user) {
             httpNotFound(res);
             return;
         }
 
-        const updatedUser = new User({
-            ...user,
-            password: hashPassword(req.body.password),
-        });
-
-        await User.findByIdAndUpdate(userId, updatedUser);
-        httpOk(res, removePassword(updatedUser));
+        httpOk(res, removePassword(user.toObject()));
     }
 
-    static banUser = async (req: Request, res: Response) => {
+    static banArtist = async (req: Request, res: Response) => {
         const user = await User.findByIdAndUpdate(req.params.id, {banned: true}, {new: true});
 
         if (!user) {
             httpNotFound(res);
+            return;
+        }
+
+        if (user.role !== 'artist') {
+            httpUnprocessableEntity(res, 'Only artists can be banned.');
             return;
         }
 

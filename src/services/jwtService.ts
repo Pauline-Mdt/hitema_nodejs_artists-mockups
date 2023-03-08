@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import {IUser} from '../models/IUser';
+import {JWT_SECRET} from '../config';
 
 export const gererateToken = (user: IUser) => {
     return jwt.sign(
@@ -7,13 +8,9 @@ export const gererateToken = (user: IUser) => {
             id: user._id,
             role: user.role,
         },
-        (process.env.JWT_SECRET as jwt.Secret),
+        JWT_SECRET,
         {
             expiresIn: '7d',
         }
     );
-}
-
-export const verifyToken = (token: string) => {
-    return jwt.verify(token, (process.env.JWT_SECRET as jwt.Secret));
 }

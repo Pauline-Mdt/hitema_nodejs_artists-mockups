@@ -1,9 +1,9 @@
 import {Request, Response} from 'express';
 import {IUserLogin, UserLoginSchema} from '../models/IUserLogin';
 import {
-    httpBadRequest, httpNoContent,
+    httpNoContent,
     httpNotFound, httpOk,
-    httpUnauthorized,
+    httpUnauthorized, httpUnprocessableEntity,
 } from '../services/httpResponsesService';
 import {gererateToken} from '../services/jwtService';
 import {comparePassword} from '../services/hashService';
@@ -11,10 +11,10 @@ import {removePassword} from '../services/passwordService';
 import {User} from '../models/IUser';
 
 class AuthController {
-    static async login(req: Request, res: Response) {
+    static login = async (req: Request, res: Response) => {
         const {error} = UserLoginSchema.validate(req.body);
         if (error) {
-            httpBadRequest(res, error.message);
+            httpUnprocessableEntity(res, error.message);
             return;
         }
 
@@ -22,8 +22,8 @@ class AuthController {
             email: req.body.email,
             password: req.body.password,
         }
-        const user = await User.findOne({email: userToLogin.email});
 
+        const user = await User.findOne({email: userToLogin.email});
         if (!user) {
             httpNotFound(res);
             return;
@@ -40,7 +40,7 @@ class AuthController {
         });
     }
 
-    static logout(req: Request, res: Response) {
+    static logout = (req: Request, res: Response) => {
         httpNoContent(res);
     }
 }

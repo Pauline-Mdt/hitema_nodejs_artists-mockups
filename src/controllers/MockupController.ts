@@ -4,26 +4,21 @@ import {
     httpCreated,
     httpNoContent,
     httpNotFound,
-    httpOk,
-    httpUnprocessableEntity,
+    httpOk, httpUnprocessableEntity,
 } from '../services/httpResponsesService';
-import {User} from '../models/IUser';
-import {checkSchemaValidity} from '../services/modelsService';
 
 class MockupController {
     static createMockup = async (req: Request, res: Response) => {
-        checkSchemaValidity(CreateMockupSchema, req.body, res);
-
-        const ownerUser = await User.findById(req.body.userId);
-        if (!ownerUser) {
-            httpUnprocessableEntity(res, 'UserId is not valid.');
+        const {error} = CreateMockupSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
             return;
         }
 
         const newMockup = new Mockup({
             url: req.body.url,
             title: req.body.title,
-            userId: ownerUser._id,
+            userId: req.auth?.id,
         });
 
         await newMockup.save();
@@ -54,23 +49,20 @@ class MockupController {
     }
 
     static updateMockup = async (req: Request, res: Response) => {
-        checkSchemaValidity(UpdateMockupSchema, req.body, res);
+        const {error} = UpdateMockupSchema.validate(req.body);
+        if (error) {
+            httpUnprocessableEntity(res, error.message);
+            return;
+        }
 
-        const mockupId: string = req.params.id;
-        const mockup = await Mockup.findById(mockupId);
+        const mockup = await Mockup.findByIdAndUpdate(req.params.id, req.body, {new: true});
 
         if (!mockup) {
             httpNotFound(res);
             return;
         }
 
-        const updatedMockup = new Mockup({
-            ...mockup,
-            ...req.body,
-        });
-
-        await Mockup.findByIdAndUpdate(mockupId, updatedMockup);
-        httpOk(res, updatedMockup.toObject());
+        httpOk(res, mockup.toObject());
     }
 
     static deleteMockup = async (req: Request, res: Response) => {

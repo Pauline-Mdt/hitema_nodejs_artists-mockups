@@ -1,13 +1,13 @@
 import express from 'express';
 import MockupController from '../controllers/MockupController';
-import {artistIsNotBanned, isNotAdmin, isOwnerOrManagerOrAdmin} from '../middewares/userMiddleware';
+import {artistIsNotBanned, isArtist, isOwnerMockupOrAdmin} from '../middewares/userMiddleware';
 
 const mockupsRoutes = express.Router();
 
-mockupsRoutes.post('', isNotAdmin, artistIsNotBanned, MockupController.createMockup);
+mockupsRoutes.post('', isArtist, artistIsNotBanned, MockupController.createMockup);
 mockupsRoutes.get('', MockupController.getAllMockups);
-mockupsRoutes.get('/:id', isOwnerOrManagerOrAdmin, MockupController.getOneMockup);
-mockupsRoutes.put('/:id', isOwnerOrManagerOrAdmin, artistIsNotBanned, MockupController.updateMockup);
-mockupsRoutes.delete('/:id', isOwnerOrManagerOrAdmin, MockupController.deleteMockup);
+mockupsRoutes.get('/:id', isOwnerMockupOrAdmin, MockupController.getOneMockup);
+mockupsRoutes.put('/:id', isOwnerMockupOrAdmin, artistIsNotBanned, MockupController.updateMockup);
+mockupsRoutes.delete('/:id', isOwnerMockupOrAdmin, MockupController.deleteMockup);
 
 export default mockupsRoutes;
